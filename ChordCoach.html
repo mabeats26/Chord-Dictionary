@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Chord Dictionary</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f9f8f3;
+  --panel:    #ffffff;
+  --panel2:   #f4f2eb;
+  --border:   #e6e2d6;
+  --border2:  #d6d1c0;
+  --acc:      #c9a84c;
+  --acc-l:    #fef8e8;
+  --acc-m:    #e8c96e;
+  --text:     #1c1a15;
+  --sub:      #5a5444;
+  --muted:    #8c8470;
+  --radius:   10px;
+  --radius-lg:14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  height: 100%;
+  height: -webkit-fill-available;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+/* ── Header ───────────────────────────────────── */
+header {
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: var(--text);
+}
+.logo img { width: 32px; height: 32px; border-radius: 8px; display: block; }
+.logo em { color: var(--acc); font-style: normal; }
+
+.nav-tabs { display: flex; gap: 6px; }
+.nav-tab {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+}
+.nav-tab:hover { background: var(--panel2); color: var(--text); }
+.nav-tab.on { background: var(--acc); color: #fff; }
+
+.badge {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 3px 12px;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  background: var(--panel2);
+  font-weight: 400;
+}
+
+/* ── App shell ────────────────────────────────── */
+.app { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+
+/* ── Sidebar ──────────────────────────────────── */
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+.srchwrap { padding: 14px; border-bottom: 1px solid var(--border); }
+#srch {
+  width: 100%;
+  padding: 9px 13px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+#srch:focus { border-color: var(--acc); }
+#srch::placeholder { color: var(--muted); }
+
+.tabbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tab {
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .12s;
+  white-space: nowrap;
+}
+.tab:hover { background: var(--panel2); color: var(--text); }
+.tab.on { background: var(--acc); color: #fff; }
+
+.clist { flex: 1; overflow-y: auto; padding: 10px; }
+.clist::-webkit-scrollbar { width: 3px; }
+.clist::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.rsec { margin-bottom: 4px; }
+.rhdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background .1s;
+  user-select: none;
+}
+.rhdr:hover { background: var(--panel2); }
+.rn { font-size: 13px; font-weight: 600; }
+.rm { font-size: 11px; color: var(--muted); }
+.rc { font-size: 9px; color: var(--muted); transition: transform .18s; }
+.rsec.open .rc { transform: rotate(90deg); }
+.rch { display: none; flex-wrap: wrap; gap: 4px; padding: 4px 6px 10px 12px; }
+.rsec.open .rch { display: flex; }
+
+.sflat { display: flex; flex-wrap: wrap; gap: 4px; padding: 10px; }
+
+.cp {
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--sub);
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all .12s;
+  white-space: nowrap;
+}
+.cp:hover { border-color: var(--acc); color: var(--text); background: var(--acc-l); }
+.cp.on { background: var(--acc); color: #fff; border-color: var(--acc); }
+
+/* ── Main ─────────────────────────────────────── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.main::-webkit-scrollbar { width: 4px; }
+.main::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.page { display: none; flex-direction: column; gap: 20px; }
+.page.on { display: flex; }
+
+/* ── Welcome ──────────────────────────────────── */
+.welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  min-height: 55vh;
+}
+.welcome-icon { font-size: 2.4rem; opacity: .18; }
+.welcome h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+.welcome p {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+@keyframes fu { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+.anim { animation: fu .22s ease both; }
+
+/* ── Chord hero ───────────────────────────────── */
+.hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.hero-l { flex: 1; min-width: 180px; }
+
+.cname {
+  font-size: clamp(3.2rem, 7vw, 5rem);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--acc);
+  letter-spacing: -.01em;
+  margin-bottom: 10px;
+}
+.cfull {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.cdesc {
+  font-size: 13.5px;
+  color: var(--sub);
+  line-height: 1.65;
+  max-width: 420px;
+  font-weight: 400;
+}
+.enharm {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--acc-l);
+  border: 1px solid var(--acc-m);
+  font-size: 12px;
+  color: var(--sub);
+}
+.enharm b { color: var(--acc); font-weight: 600; }
+
+.npills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 14px;
+}
+.np {
+  padding: 4px 13px;
+  border-radius: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  border: 1px solid var(--border2);
+  background: var(--panel2);
+  color: var(--text);
+}
+.np.root { border-color: var(--acc); color: var(--acc); background: var(--acc-l); }
+.np.blk  { border-color: var(--sub); color: var(--sub); }
+
+.playbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 10px 22px;
+  border-radius: var(--radius);
+  background: var(--acc);
+  color: #fff;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .02em;
+}
+.playbtn:hover { background: #b8932e; }
+.playbtn:active { transform: scale(.97); }
+
+/* Meta boxes */
+.mrow { display: flex; gap: 10px; flex-wrap: wrap; }
+.mbox {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  text-align: center;
+  min-width: 80px;
+}
+.mlbl {
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.mval { font-size: 16px; font-weight: 600; }
+.ddots { display: flex; gap: 4px; justify-content: center; margin-top: 4px; }
+.dd { width: 7px; height: 7px; border-radius: 50%; background: var(--border2); }
+.dd.on { background: var(--acc); }
+
+/* ── Cards ────────────────────────────────────── */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+}
+.ctitle {
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.c2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
+/* ── Piano ────────────────────────────────────── */
+.piano { position: relative; height: 112px; user-select: none; }
+.wkeys { display: flex; width: 100%; height: 100%; gap: 2px; }
+.wk {
+  flex: 1;
+  background: #fffdf8;
+  border-radius: 0 0 6px 6px;
+  position: relative;
+  border: 1px solid #d4cfc0;
+  transition: background .1s;
+  cursor: default;
+}
+.wk.lit     { background: var(--acc); border-color: #b8932e; }
+.wk.interactive { cursor: pointer; }
+.wk.interactive:hover:not(.lit):not(.selected) { background: var(--acc-l); }
+.wk.selected { background: var(--acc); border-color: #b8932e; }
+.lbl {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  color: #aaa;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.wk.lit .lbl, .wk.selected .lbl { color: #fff; font-weight: 500; }
+.bklayer { position: absolute; top: 0; left: 0; width: 100%; height: 62%; pointer-events: none; }
+.bk {
+  position: absolute;
+  width: 5%;
+  height: 100%;
+  background: #2a2318;
+  border-radius: 0 0 4px 4px;
+  transform: translateX(-50%);
+  z-index: 2;
+  transition: background .1s;
+}
+.bk.lit { background: var(--acc); }
+.bk.interactive { pointer-events: all; cursor: pointer; }
+.bk.interactive:hover:not(.lit):not(.selected) { background: #4a3f2a; }
+.bk.selected { background: var(--acc); }
+
+/* ── Fingering ────────────────────────────────── */
+.frow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.fi  { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.fc  {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+.fc.on { background: var(--acc); color: #fff; border-color: var(--acc); }
+.fn { font-size: 10.5px; font-family: 'DM Mono', monospace; color: var(--muted); }
+.fn.on { color: var(--acc); font-weight: 500; }
+
+.fdet { margin-top: 16px; display: flex; flex-direction: column; gap: 7px; }
+.fdr { font-size: 13px; color: var(--sub); line-height: 1.5; }
+.fdr b { color: var(--text); font-weight: 600; }
+
+/* ── Tips ─────────────────────────────────────── */
+.tips { list-style: none; display: flex; flex-direction: column; gap: 13px; }
+.tips li { display: flex; gap: 11px; font-size: 13px; line-height: 1.65; color: var(--sub); font-weight: 400; }
+.td {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--acc-l);
+  border: 1px solid var(--acc-m);
+  color: var(--acc);
+  font-size: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ── Formula ──────────────────────────────────── */
+.fsteps {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.fs {
+  padding: 5px 13px;
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  background: var(--acc-l);
+  border: 1px solid var(--acc-m);
+  color: var(--sub);
+}
+.fsep { color: var(--border2); font-size: 15px; }
+.flbl { font-size: 12px; color: var(--muted); line-height: 1.6; font-weight: 400; }
+
+/* ── Identify page ────────────────────────────── */
+.id-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+.id-title { font-size: 18px; font-weight: 600; letter-spacing: -.01em; color: var(--text); }
+.id-sub   { font-size: 13px; color: var(--muted); margin-top: 4px; font-weight: 400; line-height: 1.5; }
+
+.clearbtn {
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: none;
+  color: var(--sub);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+}
+.clearbtn:hover { border-color: var(--acc); color: var(--acc); }
+
+.id-result {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+}
+.result-empty {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.65;
+  font-weight: 400;
+}
+.result-found { width: 100%; }
+.result-name  {
+  font-size: 3rem;
+  font-weight: 600;
+  color: var(--acc);
+  line-height: 1;
+  letter-spacing: -.02em;
+  margin-bottom: 6px;
+}
+.result-full {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.result-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+.result-alts  { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.result-alts-label {
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.alt-pill {
+  display: inline-flex;
+  margin: 3px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--sub);
+  cursor: pointer;
+  transition: all .12s;
+}
+.alt-pill:hover { border-color: var(--acc); color: var(--acc); background: var(--acc-l); }
+
+.sel-wrap { display: flex; flex-direction: column; gap: 8px; }
+.sel-label-row {
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.selected-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 32px;
+  align-items: center;
+}
+.sel-note {
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--acc);
+  color: #fff;
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.sel-hint { font-size: 13px; color: var(--muted); font-weight: 400; }
+
+/* ── Tablet (iPad) ────────────────────────────── */
+@media (max-width: 900px) {
+  .sidebar { width: 220px; }
+  .main { padding: 20px 20px; }
+  .hero { flex-direction: column; gap: 14px; }
+  .c2 { grid-template-columns: 1fr; }
+  .cname { font-size: clamp(2.4rem, 10vw, 4rem); }
+}
+
+/* ── Mobile (iPhone) ──────────────────────────── */
+@media (max-width: 640px) {
+  /* Fix iOS Safari 100vh bug — use dvh and -webkit-fill-available */
+  html { height: -webkit-fill-available; }
+  body {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+  }
+
+  /* Stack sidebar on top of main, both scrollable */
+  .app { flex-direction: column; overflow: visible; min-height: 0; }
+
+  header {
+    height: auto;
+    padding: 12px 16px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .logo { font-size: 14px; }
+  .logo img { width: 28px; height: 28px; }
+  .nav-tabs { gap: 4px; }
+  .nav-tab { padding: 5px 12px; font-size: 12px; }
+
+  /* Sidebar becomes a horizontal scrollable strip on mobile */
+  .sidebar {
+    width: 100%;
+    flex-direction: column;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow: visible;
+    max-height: none;
+  }
+  .srchwrap { padding: 10px 12px; }
+  #srch { font-size: 16px; } /* prevents iOS auto-zoom on focus */
+
+  .tabbar {
+    padding: 8px 12px;
+    gap: 4px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabbar::-webkit-scrollbar { display: none; }
+  .tab { font-size: 11px; padding: 4px 10px; flex-shrink: 0; }
+
+  .clist {
+    max-height: 220px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px;
+  }
+
+  /* Main panel */
+  .main {
+    flex: none;
+    overflow: visible;
+    padding: 16px 14px;
+    gap: 14px;
+    min-height: 0;
+  }
+
+  /* Chord view */
+  .hero { flex-direction: column; gap: 12px; }
+  .mrow { gap: 6px; }
+  .mbox { padding: 10px 12px; min-width: 64px; }
+  .cname { font-size: clamp(2.5rem, 14vw, 4rem); }
+  .cfull { font-size: 13px; }
+  .cdesc { font-size: 12px; }
+  .playbtn { width: 100%; justify-content: center; padding: 12px 20px; font-size: 14px; }
+  .c2 { grid-template-columns: 1fr; gap: 12px; }
+  .card { padding: 14px; }
+
+  /* Piano keys — make them taller for finger touch */
+  .piano { height: 90px; }
+
+  /* Finger row */
+  .frow { gap: 6px; }
+  .fc { width: 38px; height: 38px; font-size: 14px; }
+
+  /* Tips */
+  .tips li { font-size: 12px; line-height: 1.6; }
+
+  /* Identifier page */
+  .id-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .id-title { font-size: 16px; }
+  .clearbtn { width: 100%; text-align: center; padding: 10px; }
+  .result-name { font-size: 2.2rem; }
+
+  /* Formula steps */
+  .fsteps { gap: 4px; }
+  .fs { padding: 4px 8px; font-size: 11px; }
+
+  /* Welcome */
+  .welcome { min-height: 40vh; gap: 12px; }
+  .welcome h2 { font-size: 1.2rem; }
+  .welcome p { font-size: 13px; }
+  .welcome img { width: 56px; height: 56px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><img src="data:image/png;base64,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" alt="ChordCoach logo">Chord Dictionary</div>
+  <div class="nav-tabs">
+    <button class="nav-tab on" onclick="switchPage('learn')">Learn</button>
+    <button class="nav-tab" onclick="switchPage('identify')">Identify</button>
+  </div>
+
+</header>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="srchwrap">
+      <input id="srch" type="text" placeholder="Search… e.g. Cm7, Fsus4">
+    </div>
+    <div class="tabbar" id="tabbar"></div>
+    <div class="clist" id="clist"></div>
+  </aside>
+
+  <main class="main" id="main">
+
+    <!-- LEARN PAGE -->
+    <div class="page on" id="page-learn">
+      <div class="welcome" id="welcome">
+        <img src="data:image/png;base64,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" alt="ChordCoach" style="width:72px;height:72px;border-radius:18px;opacity:.85;margin-bottom:4px;">
+        <h2>Pick a chord</h2>
+        <p>Browse by category tab on the left,<br>or search above. Click any chord to learn it.</p>
+      </div>
+      <div id="chord-view" style="display:none; flex-direction:column; gap:20px;"></div>
+    </div>
+
+    <!-- IDENTIFY PAGE -->
+    <div class="page" id="page-identify">
+      <div class="id-header">
+        <div>
+          <div class="id-title">Chord Identifier</div>
+          <div class="id-sub">Click keys on the piano below to identify your chord</div>
+        </div>
+        <button class="clearbtn" onclick="clearIdentifier()">Clear</button>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Selected notes</div>
+        <div class="selected-notes" id="selNotes">
+          <span class="sel-hint">Click piano keys below…</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Click to add / remove notes</div>
+        <div id="id-piano"></div>
+      </div>
+
+      <div class="id-result" id="idResult">
+        <div class="result-empty">Play 2 or more notes to identify a chord</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const ROOTS=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const RD={"C":"C","C#":"C♯ / D♭","D":"D","D#":"D♯ / E♭","E":"E","F":"F","F#":"F♯ / G♭","G":"G","G#":"G♯ / A♭","A":"A","A#":"A♯ / B♭","B":"B"};
+const ENH={"C#":"D♭","D#":"E♭","F#":"G♭","G#":"A♭","A#":"B♭"};
+const ND={"C#":"C♯","D#":"D♯","F#":"F♯","G#":"G♯","A#":"A♯"};
+const nd=n=>ND[n]||n;
+const CATS=["Major","Minor","7th","9th–13th","Dim & Aug","Suspended","6th","Add","Power"];
+const T={
+  "maj":{i:[0,4,7],n:"Major",d:1,c:"Major"},
+  "maj6":{i:[0,4,7,9],n:"Major 6th",d:2,c:"6th"},
+  "maj7":{i:[0,4,7,11],n:"Major 7th",d:2,c:"7th"},
+  "maj9":{i:[0,4,7,11,14],n:"Major 9th",d:3,c:"9th–13th"},
+  "maj11":{i:[0,4,7,11,14,17],n:"Major 11th",d:4,c:"9th–13th"},
+  "maj13":{i:[0,4,7,11,14,17,21],n:"Major 13th",d:4,c:"9th–13th"},
+  "add9":{i:[0,4,7,14],n:"Add 9",d:2,c:"Add"},
+  "add11":{i:[0,4,7,17],n:"Add 11",d:2,c:"Add"},
+  "6_9":{i:[0,4,7,9,14],n:"6/9",d:3,c:"6th"},
+  "m":{i:[0,3,7],n:"Minor",d:1,c:"Minor"},
+  "m6":{i:[0,3,7,9],n:"Minor 6th",d:2,c:"6th"},
+  "m7":{i:[0,3,7,10],n:"Minor 7th",d:2,c:"7th"},
+  "m9":{i:[0,3,7,10,14],n:"Minor 9th",d:3,c:"9th–13th"},
+  "m11":{i:[0,3,7,10,14,17],n:"Minor 11th",d:4,c:"9th–13th"},
+  "m13":{i:[0,3,7,10,14,17,21],n:"Minor 13th",d:4,c:"9th–13th"},
+  "mmaj7":{i:[0,3,7,11],n:"Minor Major 7th",d:3,c:"7th"},
+  "madd9":{i:[0,3,7,14],n:"Minor Add 9",d:2,c:"Add"},
+  "dom7":{i:[0,4,7,10],n:"Dominant 7th",d:2,c:"7th"},
+  "dom9":{i:[0,4,7,10,14],n:"Dominant 9th",d:3,c:"9th–13th"},
+  "dom11":{i:[0,4,7,10,14,17],n:"Dominant 11th",d:4,c:"9th–13th"},
+  "dom13":{i:[0,4,7,10,14,17,21],n:"Dominant 13th",d:4,c:"9th–13th"},
+  "7b9":{i:[0,4,7,10,13],n:"7th ♭9",d:3,c:"9th–13th"},
+  "7s9":{i:[0,4,7,10,15],n:"7th ♯9",d:3,c:"9th–13th"},
+  "7b5":{i:[0,4,6,10],n:"7th ♭5",d:3,c:"7th"},
+  "7s5":{i:[0,4,8,10],n:"7th ♯5",d:3,c:"7th"},
+  "dim":{i:[0,3,6],n:"Diminished",d:2,c:"Dim & Aug"},
+  "dim7":{i:[0,3,6,9],n:"Diminished 7th",d:2,c:"Dim & Aug"},
+  "m7b5":{i:[0,3,6,10],n:"Half-Dim m7♭5",d:3,c:"Dim & Aug"},
+  "aug":{i:[0,4,8],n:"Augmented",d:2,c:"Dim & Aug"},
+  "aug7":{i:[0,4,8,10],n:"Augmented 7th",d:3,c:"Dim & Aug"},
+  "sus2":{i:[0,2,7],n:"Suspended 2nd",d:1,c:"Suspended"},
+  "sus4":{i:[0,5,7],n:"Suspended 4th",d:1,c:"Suspended"},
+  "7sus2":{i:[0,2,7,10],n:"7th Sus2",d:2,c:"Suspended"},
+  "7sus4":{i:[0,5,7,10],n:"7th Sus4",d:2,c:"Suspended"},
+  "9sus4":{i:[0,5,7,10,14],n:"9th Sus4",d:3,c:"Suspended"},
+  "p5":{i:[0,7],n:"Power Chord",d:1,c:"Power"},
+  "p5oct":{i:[0,7,12],n:"Power + Octave",d:1,c:"Power"},
+};
+const SUF={
+  "maj":"","maj6":"maj6","maj7":"maj7","maj9":"maj9","maj11":"maj11","maj13":"maj13",
+  "add9":"add9","add11":"add11","6_9":"6/9",
+  "m":"m","m6":"m6","m7":"m7","m9":"m9","m11":"m11","m13":"m13","mmaj7":"mMaj7","madd9":"madd9",
+  "dom7":"7","dom9":"9","dom11":"11","dom13":"13",
+  "7b9":"7♭9","7s9":"7♯9","7b5":"7♭5","7s5":"7♯5",
+  "dim":"dim","dim7":"dim7","m7b5":"m7♭5","aug":"aug","aug7":"aug7",
+  "sus2":"sus2","sus4":"sus4","7sus2":"7sus2","7sus4":"7sus4","9sus4":"9sus4",
+  "p5":"5","p5oct":"5(8)",
+};
+const DESC={
+  "maj":"Three notes — root, major 3rd, perfect 5th — and somehow the whole world sounds okay. The major chord is the musical equivalent of a sunny day. Fun fact: virtually every culture on earth independently developed music centered around major-like sounds.",
+  "m":"Lower just one note from the major chord and the mood completely flips. The minor 3rd is the 'sad note' — just one semitone lower than major, yet emotionally miles apart. Fun fact: minor keys are statistically more common in hit songs about heartbreak.",
+  "dom7":"The most restless chord in music — that flat 7th creates a tension your ear desperately wants resolved. It's the musical equivalent of a cliffhanger. Fun fact: the blues was basically built on this chord alone. V7 → I is the most satisfying resolution in Western harmony.",
+  "maj7":"Add the note just below the octave to a major chord and it blooms into something beautiful. Used constantly in jazz, bossa nova, and dreamy indie pop. Fun fact: Burt Bacharach made this chord his signature — listen to 'What the World Needs Now' and count them.",
+  "m7":"The jazz musician's default minor chord. Smoother and less bleak than plain minor — the flat 7th softens the sadness into something sophisticated. Fun fact: Marvin Gaye's 'What's Going On' is essentially a masterclass in minor 7th chords.",
+  "dim":"Built entirely from stacked minor thirds, every note exactly 3 semitones apart. It sounds tense, unstable, almost sinister. Fun fact: Baroque composers used diminished chords so much for dramatic effect that audiences started calling it the 'chord of death.'",
+  "dim7":"So symmetrical it barely exists in one key — every single inversion is also a diminished 7th chord. That's why there are only 3 truly unique dim7 chords in all of music. Fun fact: horror film composers love this chord because the ear can't find a home in it.",
+  "aug":"Raise the 5th by one semitone and you get something alien and beautiful. Three notes, all a major 3rd apart — completely symmetrical like the dim7 but bright instead of dark. Fun fact: Debussy used augmented chords constantly to create his signature dreamlike soundscapes.",
+  "sus2":"Swap the 3rd for the 2nd and the chord floats free of any major or minor identity. Open, spacious, ambiguous. Fun fact: Sting and The Police used sus2 chords obsessively in the early 80s — 'Every Breath You Take' opens with one.",
+  "sus4":"The most tension-filled chord without being dissonant. That 4th just sits there, desperately wanting to fall down to the 3rd. Fun fact: The opening of 'Pinball Wizard' by The Who is famously built on cascading sus4 chords.",
+  "add9":"A major chord that inhaled some fresh air — the added 9th (same as the 2nd, just an octave up) opens it right up. No 7th, so it stays bright and uncluttered. Fun fact: Coldplay's entire early career was practically built on add9 chords.",
+  "p5":"No third at all — just root and fifth — so it's neither happy nor sad. Perfectly neutral power. Fun fact: Power chords became the defining sound of rock because they sound huge through distortion, where thirds turn into a dissonant buzz.",
+  "maj6":"The major chord with a 6th added on top — warm, nostalgic, slightly jazzy. Think classic Hollywood film scores and old-school bossa nova. Fun fact: The opening chord of 'My Way' is a major 6th, which is why it sounds so grand and conclusive.",
+  "m6":"One of the most emotionally complex chords — minor's sadness mixed with the brightness of a major 6th. It's the sound of bittersweet. Fun fact: Tango composers adopted the minor 6th as their signature chord because it captures longing and passion at once.",
+  "mmaj7":"A minor chord with a major 7th — two opposite ideas in one chord. The result is hauntingly beautiful tension. Fun fact: The James Bond theme uses this exact sound to create its signature mysterious glamour. It descends chromatically through mMaj7 → m7 → m6.",
+  "m7b5":"Also called 'half-diminished.' It's the ii chord in every minor key ii–V–i progression — the starting point of jazz's most common harmonic move. Fun fact: Tristan und Isolde by Wagner opens with this chord (the famous 'Tristan chord'), and it shocked audiences in 1865.",
+  "7b9":"A dominant 7th with a flat 9th added — the most tense, dramatic chord in the jazz vocabulary. Often marks the moment just before a big resolution. Fun fact: Flamenco guitarists call this sound the 'Phrygian dominant' — it's the soul of Spanish music.",
+  "7s9":"The sharpened 9th creates a note that's between major and minor simultaneously. Jimi Hendrix used it so constantly that musicians nicknamed it the 'Hendrix chord.' Fun fact: The opening riff of 'Purple Haze' is built on this chord — E7#9.",
+  "dom9":"A dominant 7th with the 9th added for extra richness. The bread and butter of jazz and funk. Fun fact: James Brown's music is practically a love letter to the dominant 9th chord. His band would vamp on a single dom9 for minutes at a time.",
+  "maj9":"Stacks the major 7th and 9th on top of the major triad — expansive, luminous, cinematic. Fun fact: John Williams uses maj9 chords throughout the Star Wars soundtrack to create that sense of vast, hopeful outer space.",
+  "m9":"Minor with both the 7th and 9th added — layered, complex, deeply emotional. The go-to chord for neo-soul and R&B. Fun fact: D'Angelo's 'Brown Sugar' barely moves harmonically — it just sits on a minor 9th chord and lets the groove do everything.",
+  "7sus4":"Dominant tension but without the 3rd to define major or minor. It just floats, uncommitted. Fun fact: Miles Davis's 'So What' from Kind of Blue uses a related sound — the whole modal jazz movement was about chords that don't demand resolution.",
+  "dom13":"The ultimate dominant chord — stacks all seven scale degrees. In practice, pianists voice these carefully to avoid muddy clusters. Fun fact: Big band jazz arrangers spent decades perfecting how to voice 13th chords across a full horn section.",
+  "madd9":"A minor chord with the 9th dropped in — melancholic but with a touch of openness from that added note. It sits somewhere between hopeless and hopeful. Fun fact: Radiohead built much of their harmonic language around minor add9 voicings.",
+  "aug7":"An augmented chord with a dominant 7th added — even more unstable than plain augmented. Used as a colorful substitute for regular dominant chords. Fun fact: Jazz pianist Art Tatum was famous for sneaking augmented 7th chords into his reharmonizations.",
+  "7b5":"The tritone is already inside a dom7 chord, but replacing the 5th with a flat 5th makes the tritone even more prominent. Fun fact: This chord is the basis of 'tritone substitution' — a technique where jazz musicians swap any dominant chord for the one a tritone away.",
+  "7s5":"A dominant chord with a raised 5th, creating a chord that sounds like it could go almost anywhere. Ambiguous and dramatic. Fun fact: Composers in the late Romantic era used augmented dominant chords to delay resolution as long as possible.",
+  "add11":"The 11th (same pitch as the 4th) adds a dreamy, unresolved quality to the major chord. It clashes gently with the 3rd, creating beautiful tension. Fun fact: McCoy Tyner played voicings like this constantly with John Coltrane — left hand quartal, right hand melody.",
+  "7sus2":"A suspended dominant with the 2nd replacing the 3rd. Even more open and floating than 7sus4. Fun fact: Brian Eno's ambient music frequently uses suspended dominant sounds precisely because they don't pull the ear anywhere specific.",
+  "9sus4":"Extended suspension — the 9th adds richness while the sus4 keeps things unresolved. Wide, cinematic, modern. Fun fact: Hans Zimmer uses chords like this constantly in film scores when he wants tension without obvious darkness.",
+  "maj11":"The 11th clashes with the major 3rd, so pianists often drop the 3rd entirely. The result is wide open and orchestral. Fun fact: Bill Evans pioneered this kind of voicing — chords with deliberate omissions that let the overtones do the work.",
+  "m11":"Seven notes, all stacked up — rich, dense, complex. One of the most sophisticated sounds in jazz. Fun fact: Herbie Hancock's iconic 'Maiden Voyage' opens with a minor 11th chord that sounds like sunlight through deep water.",
+  "maj13":"All seven notes of the major scale in one chord. In practice, only 4–5 are played, chosen for the best voicing. Fun fact: Duke Ellington was famous for thick major 13th voicings — he called lush, complex chords his 'orchestral piano' sound.",
+  "m13":"The full minor extension — minor, flat 7th, 9th, 11th, and 13th. Deep, layered, sophisticated. Fun fact: Neo-soul artists like Erykah Badu and Robert Glasper made minor 13th chords central to their sound in the 2000s.",
+  "dom11":"The 11th on a dominant chord creates an almost suspended quality. Often the 3rd is omitted to reduce clashing. Fun fact: In modal jazz, dom11 chords are used as tonal centers rather than chords that need to resolve.",
+  "6_9":"A major 6th chord with the 9th added — jazz's favorite way to end a piece on the tonic. Bright, resolved, yet somehow not quite finished. Fun fact: The 6/9 chord was Horace Silver's absolute favorite ending chord — he used it to close almost every song he wrote.",
+  "p5oct":"The power chord doubled an octave up — even thicker and more resonant. The octave reinforces the fundamental, making it sound massive. Fun fact: Stadium rock was partly defined by this exact voicing — two guitarists, one playing the chord, one doubling the octave.",
+};
+const TIPS={
+  "maj":["Use fingering 1–3–5 (thumb, middle, pinky) for the standard closed position — this works in every key.","Practise moving smoothly between C, F, and G major — that I–IV–V is the backbone of hundreds of songs.","🎹 Fun fact: C major is the only major chord where all three notes are natural white keys with no accidentals."],
+  "m":["The only difference from major is the middle note drops one semitone — train your ear to hear that emotional shift.","Am, Dm, and Em are all white-key minor chords — master these three before moving to black-key roots.","🎹 Fun fact: studies show people across virtually every culture correctly identify minor chords as 'sad' — it may be hardwired into human perception."],
+  "dom7":["Finger it 1–2–3–5 and keep your wrist loose — gripping causes tension that slows you down.","Play G7 then C major, back and forth slowly. That resolution is the most common chord movement in all of Western music.","🎹 Fun fact: the dominant 7th was considered so dissonant in the 16th century that strict rules governed how it had to be used and resolved."],
+  "maj7":["Cmaj7 (C–E–G–B) uses all white keys — the perfect first maj7 chord to commit to muscle memory.","Voice the major 7th high in the right hand — that top note is where the magic lives.","🎹 Fun fact: Stevie Wonder's 'Isn't She Lovely' and Sade's 'Smooth Operator' both open with maj7 chords. Once you hear it, you'll notice it everywhere."],
+  "m7":["Think of it as: minor chord + one extra note on top (the flat 7th). Build it in two steps until it feels natural.","Am7 (A–C–E–G) uses all white keys — learn this one by feel with your eyes closed.","🎹 Fun fact: the m7 chord appears in more Motown recordings than any other extended chord — it's the sound of classic soul."],
+  "dim":["All three notes are equally spaced (3 semitones each) — once the shape is in your fingers it feels the same in every key.","Use dim as a passing chord between two chords a step apart — it creates smooth, almost cinematic movement.","🎹 Fun fact: J.S. Bach used diminished chords to depict suffering and death in his religious works. The association stuck for centuries."],
+  "dim7":["Every inversion of this chord is also a dim7 — you can slide the same shape up or down 3 frets and land on a related chord.","Try playing it slowly and letting it ring — the tension it creates is almost physical.","🎹 Fun fact: there are only 3 truly unique dim7 chords in all of music. Every other 'new' one is just an inversion of one of these three."],
+  "aug":["The augmented is symmetric like dim7 — moving it up 4 semitones gives the exact same notes. Only 4 unique aug chords exist.","Voice it 1–2–5 and let the raised 5th sing clearly on top. That's the note that creates the floating quality.","🎹 Fun fact: Franz Liszt used augmented chords so relentlessly in the 1850s that critics literally called him 'harmonically deranged.'"],
+  "sus2":["No 3rd means no major or minor — the sus2 has a timeless, genre-neutral openness that works in classical, pop, and ambient music.","Let it sustain. The sus2 rewards space — hold it and listen to the overtones bloom before you move on.","🎹 Fun fact: 'Every Breath You Take' by The Police — one of the best-selling singles in history — is built almost entirely on sus2 and sus4 chords."],
+  "sus4":["Play sus4 then immediately resolve to major. That two-chord move is one of music's most satisfying micro-moments.","Delay the resolution — the longer you sit on the sus4, the more satisfying the landing on major will be.","🎹 Fun fact: Pete Townshend said the sus4 opening of 'Pinball Wizard' was the 'trick' that made the song feel massive before a single word was sung."],
+  "add9":["Unlike maj9, there is no 7th — so it stays bright, open, and uncomplicated. Think of it as a 'fresher' major chord.","Voice the 9th on top with your pinky — that high sparkling note is what gives it the wide, modern sound.","🎹 Fun fact: Cadd9 is one of the most Googled chords in history, largely thanks to 'Wonderwall.' Oasis wrote it in 10 minutes."],
+  "p5":["Only two notes — root and 5th. Play it with thumb and pinky, or add the octave above the root for thickness.","Move power chords in parallel lines — the same hand shape slides up and down the keyboard making riffs trivially easy to construct.","🎹 Fun fact: power chords became the sound of rock because distortion made thirds buzz into noise, but perfect 5ths stayed clean and powerful."],
+  "maj6":["Voice it with the 6th on top — that highest note brightens the whole chord and gives it its nostalgic shimmer.","Use it as a more interesting substitute for a plain major chord wherever you want a touch of warmth.","🎹 Fun fact: Duke Ellington and the entire jazz big band era of the 1940s used maj6 as their primary tonic chord — it sounded resolved but never boring."],
+  "m6":["The major 6th sitting over a minor triad creates a beautiful tension. Don't try to eliminate it — lean into it.","Play it slowly and with some weight. This chord rewards deliberate, expressive touch more than speed.","🎹 Fun fact: Astor Piazzolla, the father of modern tango, built most of his harmonic language around the minor 6th chord — longing and passion in one sound."],
+  "mmaj7":["The clash between the minor 3rd and the major 7th is the whole point — let both ring and listen to how they pull against each other.","Voice the major 7th on the top note for maximum cinematic effect. Keep the bass notes simple.","🎹 Fun fact: the James Bond theme descends through mMaj7 → m7 → m6. That three-chord sequence is why it sounds simultaneously cool and dangerous."],
+  "m7b5":["Practise the minor ii–V–i: m7b5 → dom7b9 → minor. That three-chord sequence is the foundation of all minor-key jazz improvisation.","The b5 is what makes it 'half' diminished rather than fully — darker than m7 but not as tense as dim7.","🎹 Fun fact: Wagner's 'Tristan chord' (1865) — the most discussed chord in musicological history — is essentially a m7b5 in disguise. It shocked audiences at its premiere."],
+  "7b9":["The b9 is only one semitone above the root — that crushing chromatic interval creates intense, almost physical tension.","Use 7b9 to resolve into minor chords specifically. The b9 mirrors the minor scale and pulls downward with force.","🎹 Fun fact: flamenco guitarists call this sound the 'Phrygian dominant' — the E7b9 chord is considered the harmonic soul of Spanish flamenco music."],
+  "7s9":["The #9 is enharmonically a minor 3rd, so this chord contains both a major AND minor 3rd simultaneously. That ambiguity is its whole power.","Play it with authority and let it ring — it is not a chord to be timid with.","🎹 Fun fact: Jimi Hendrix played E7#9 in 'Purple Haze' (1967) so memorably that the chord has been called 'the Hendrix chord' by guitar teachers ever since."],
+  "dom9":["A full dom9 has five notes — drop the 5th to make it easier to voice cleanly with two hands.","Play it staccato in the left hand while your right hand improvises above — that separation is the core of funk piano technique.","🎹 Fun fact: James Brown instructed his band to hit a dominant 9th chord hard on beat 1 of every measure. The entire architecture of funk music flows from that single rule."],
+  "maj9":["The maj9 is a maj7 chord with one more note added on top — learn maj7 first, then stretch to include the 9th.","Voice the 9th as the highest note in the chord. Buried low, it muddies things — floating high, it shines.","🎹 Fun fact: the opening chord of 'Misty' by Erroll Garner — one of the most covered piano ballads in history — is a maj9. That one chord sets the entire emotional tone."],
+  "m9":["Approach it as m7 + one extra note. Solidify the m7 first, then add the 9th on top once the base feels stable.","The interval between the 9th and the b7 (a minor 7th) is the core of the chord's emotional depth — listen for it.","🎹 Fun fact: D'Angelo recorded 'Brown Sugar' (1995) by essentially sitting on a minor 9th chord and letting the groove evolve around it for the entire song."],
+  "7sus4":["No 3rd means no major or minor — this chord floats in total harmonic ambiguity that Miles Davis called 'the sound of possibility.'","Resolve by dropping the 4th down to the 3rd — the simpler and more delayed the resolution, the more satisfying it lands.","🎹 Fun fact: 'So What' by Miles Davis (1959) — arguably the most important jazz recording ever made — is built on a chord essentially identical to 7sus4. The whole album changed jazz history."],
+  "dom13":["In practice: omit the 5th and 9th — keep root, 3rd, 7th, and 13th for a clean four-note voicing that implies the full chord.","The 13th is the same pitch as the 6th — so dom13 resolving to major sounds like a bright, satisfying arrival.","🎹 Fun fact: technically, a complete 13th chord requires all seven scale degrees sounding at once. No single pianist can comfortably voice all seven notes — it's a theoretical chord that lives in practice as a carefully chosen subset."],
+  "madd9":["Add the 9th high in the right hand, above the minor triad — keeping it separate from the lower notes preserves its brightness.","This chord sits between the stark simplicity of minor and the fullness of m9. Use it when you want emotion without complexity.","🎹 Fun fact: the piano intro to 'Mad World' by Tears for Fears (1982) — later covered by Gary Jules in Donnie Darko — is built on minor add9 voicings. That sound defines the song's melancholy."],
+  "aug7":["Think: dominant 7th with the 5th raised one semitone. Two tension points at once — the b7 pulling down, the #5 pushing up.","It naturally resolves to chords a perfect 4th up OR a semitone down — experiment with both resolutions.","🎹 Fun fact: Ravel used augmented 7th chords extensively in 'Gaspard de la nuit' (1908) — still considered one of the hardest piano pieces ever written — to evoke a feeling of supernatural dread."],
+  "7b5":["The b5 creates a tritone with the root — the most dissonant interval in Western music. Combined with the b7, the tension is extreme.","This chord is the key to tritone substitution: C7b5 and F#7b5 share the same two inner notes, making them interchangeable in jazz.","🎹 Fun fact: the tritone (flat 5th interval) was literally banned by the medieval Catholic Church, which called it 'diabolus in musica' — the devil in music. Monks caught using it were reprimanded."],
+  "7s5":["The #5 pushes upward while the b7 pulls downward — you get a chord physically straining in two directions at once.","It works beautifully as a turnaround chord — it creates a sense of motion even when the bass note is completely static.","🎹 Fun fact: aug7 and 7#5 are literally the same chord — the augmented 5th IS the sharp 5th. They're two names for one sound, which confuses theory students worldwide."],
+  "add11":["The 11th sitting against the major 3rd creates a gentle dissonance — this is intentional. Don't resolve it, sit in it.","Voice the 11th high and the 3rd low so they breathe rather than clash. Separation is the secret to this chord's beauty.","🎹 Fun fact: Radiohead's Jonny Greenwood has said that add11 voicings appeal to him because they 'don't commit to anything' — the ambiguity is the emotion."],
+  "7sus2":["The sus2 removes the 3rd and the b7 removes stability — stacked, you get a chord with no anchor whatsoever. Pure float.","Great for atmospheric intros and transitions where you want harmonic movement without a strong sense of direction.","🎹 Fun fact: Brian Eno built his entire ambient music philosophy around chords like 7sus2 — he chose them specifically because they have no 'personality,' letting listeners project their own emotions."],
+  "9sus4":["No 3rd, plus a sus4 and a 9th — this chord floats freely between multiple keys simultaneously. It's impressionistically ambiguous.","Play it slowly and let it fully sustain — extended sus chords collapse under speed but open up magnificently given time and space.","🎹 Fun fact: Hans Zimmer's score for 'Interstellar' (2014) uses 9sus4 voicings extensively to evoke the feeling of boundless, unknowable space."],
+  "maj11":["The 11th clashes with the major 3rd — so many pianists drop the 3rd entirely, leaving a wide, open quartal voicing.","Often voiced as root, 7th, 9th, and 11th — the 3rd and 5th disappear, and the chord gains an orchestral spaciousness.","🎹 Fun fact: Bill Evans pioneered omitting chord tones in jazz piano — his maj11 voicings often had deliberate gaps that let the overtones fill in the missing notes."],
+  "m11":["Work through the layers: minor triad → m7 → m9 → m11. Add one note at a time until the full chord feels natural.","The 11th over a minor chord is less dissonant than over major because the minor 3rd gives more harmonic breathing room.","🎹 Fun fact: Herbie Hancock's 'Maiden Voyage' (1965) — the album that defined acoustic jazz fusion — opens with a minor 11th chord that sounds like sunlight filtered through deep ocean water."],
+  "maj13":["In practice, play root, 3rd, 7th, and 13th — those four notes imply the full chord without muddiness.","The 13th is enharmonically a 6th — so a well-voiced maj13 sounds like a lush, extended maj6 with additional harmonic colour above.","🎹 Fun fact: when composers write full maj13 chords in orchestral music, different instruments play different layers — a pianist alone cannot voice all seven notes comfortably. It is a collaborative chord."],
+  "m13":["Voice it across two hands: left plays root and 5th, right plays b3, b7, 9th, and 13th spread out across the upper register.","The 13th (same as the 6th) floating above a minor chord has a bittersweet quality — major brightness above minor darkness.","🎹 Fun fact: Wayne Shorter's compositions for the Miles Davis Quintet (1964–68) introduced minor 13th chords to mainstream jazz and permanently changed how musicians thought about minor harmony."],
+  "dom11":["The 11th creates a sus4-like floating quality over the dominant — it softens the urgency into something more contemplative.","Often used in gospel and neo-soul as a 'waiting' chord — rich with tension but patient, not aggressive.","🎹 Fun fact: McCoy Tyner popularised dominant 11th voicings in John Coltrane's band using 'quartal harmony' — chords built in 4ths rather than 3rds — which completely changed jazz piano technique."],
+  "6_9":["Voice it as root, 3rd, 6th, and 9th — leave out the 5th to keep it airy and open. Two hands make this easier.","Use this as your final tonic chord instead of plain major. It sounds complete but with a lingering shimmer that plain major lacks.","🎹 Fun fact: Duke Ellington ended hundreds of his compositions on a 6/9 chord. He reportedly called it 'the aristocrat of chords' — a major chord that has been to finishing school."],
+  "p5oct":["Root, 5th, and octave — three notes that are easy to grab. Thumb on root, pinky on 5th, and either thumb or pinky on the octave.","Use it as a bass foundation in the left hand while the right hand plays melody or fills above.","🎹 Fun fact: Phil Spector's legendary 'Wall of Sound' production technique involved dozens of musicians all playing power chord octaves simultaneously. The result was so physically overwhelming that early listeners reported feeling it in their chest."],
+};
+const FD=()=>"A distinctive chord with its own harmonic character. Explore it slowly — let each note sound clearly and listen to how they interact with each other.";
+const FT=()=>["Keep fingers gently curved and wrist relaxed — tension in the hand is the main enemy of clean chord playing.","Learn this chord in C first, then transpose it to G and F before moving on to other keys.","Listen carefully to how this chord makes you feel — that emotional response is your harmonic instinct developing. Trust it."];
+
+// ── Note system ───────────────────────────────────────────────────────────────
+const CHROM=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const BKP={"C#":0,"D#":1,"F#":3,"G#":4,"A#":5};
+const A4=440, A4_MIDI=69;
+const FREQS={};
+const ALLNOTES=[];
+for(let oct=2;oct<=6;oct++){
+  CHROM.forEach((n,i)=>{
+    const id=n+oct;
+    const midi=(oct+1)*12+i;
+    ALLNOTES.push(id);
+    FREQS[id]=A4*Math.pow(2,(midi-A4_MIDI)/12);
+  });
+}
+const WHITE=ALLNOTES.filter(n=>!n.includes("#"));
+
+function bldNotes(root,ivs){
+  const ri=CHROM.indexOf(root);
+  // Start voicing from octave 3 for root, build upward
+  return ivs.map(s=>{
+    const totalSemi = ri + s;
+    const ni = totalSemi % 12;
+    const octOffset = Math.floor(totalSemi / 12);
+    const oct = 3 + octOffset;
+    return CHROM[ni] + Math.min(Math.max(oct, 2), 6);
+  });
+}
+
+// ── Chord DB ──────────────────────────────────────────────────────────────────
+const DB={};
+ROOTS.forEach(root=>{
+  DB[root]={};
+  Object.entries(T).forEach(([tk,t])=>{
+    const suf=SUF[tk]!==undefined?SUF[tk]:tk;
+    DB[root][tk]={
+      dn:nd(root)+suf, full:nd(root)+" "+t.n,
+      notes:bldNotes(root,t.i),
+      diff:t.d, cat:t.c, tk,
+      desc:DESC[tk]||FD(),
+      tips:TIPS[tk]||FT(),
+      ivs:t.i,
+    };
+  });
+});
+
+// ── Audio — Real Piano Samples (Web Audio API + MP3s) ────────────────────────
+let actx=null;
+const audioBuffers={};
+let samplesLoaded=false;
+
+// Soundfont samples from gleitz/midi-js-soundfonts — very reliable CDN
+const SAMPLE_BASE='https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/acoustic_grand_piano-mp3/';
+
+// We sample every 3 semitones so pitch shifting is minimal
+const SAMPLES={
+  'A0':'A0','C1':'C1','Ds1':'D#1','Fs1':'F#1',
+  'A1':'A1','C2':'C2','Ds2':'D#2','Fs2':'F#2',
+  'A2':'A2','C3':'C3','Ds3':'D#3','Fs3':'F#3',
+  'A3':'A3','C4':'C4','Ds4':'D#4','Fs4':'F#4',
+  'A4':'A4','C5':'C5','Ds5':'D#5','Fs5':'F#5',
+  'A5':'A5','C6':'C6','Ds6':'D#6','Fs6':'F#6',
+  'A6':'A6','C7':'C7','Ds7':'D#7','Fs7':'F#7',
+  'A7':'A7','C8':'C8',
+};
+
+// Build a sorted list of available sample notes as MIDI numbers
+const CHROM_LIST=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+function noteToMidi(note){
+  const m=note.match(/^([A-G]#?)(\d+)$/);
+  if(!m)return 60;
+  return(parseInt(m[2])+1)*12+CHROM_LIST.indexOf(m[1]);
+}
+// Map each sample filename → midi number
+const sampleMidiMap={};
+Object.entries(SAMPLES).forEach(([file,note])=>{
+  sampleMidiMap[file]=noteToMidi(note);
+});
+const sampleFiles=Object.keys(SAMPLES);
+
+function getCtx(){
+  if(!actx) actx=new(window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==='suspended') actx.resume();
+  return actx;
+}
+
+async function loadSamples(){
+  if(samplesLoaded)return;
+  const ctx=getCtx();
+  const promises=sampleFiles.map(async file=>{
+    try{
+      const url=SAMPLE_BASE+file+'.mp3';
+      const resp=await fetch(url);
+      if(!resp.ok)return;
+      const arrayBuf=await resp.arrayBuffer();
+      const audioBuf=await ctx.decodeAudioData(arrayBuf);
+      audioBuffers[file]=audioBuf;
+    }catch(e){}
+  });
+  await Promise.all(promises);
+  samplesLoaded=true;
+}
+
+// Find the closest available sample to a target MIDI number
+function findClosestSample(midiNum){
+  let closest=null, minDist=999;
+  sampleFiles.forEach(file=>{
+    if(!audioBuffers[file])return;
+    const d=Math.abs(sampleMidiMap[file]-midiNum);
+    if(d<minDist){minDist=d;closest=file;}
+  });
+  return closest?{file:closest,semitones:midiNum-sampleMidiMap[closest]}:null;
+}
+
+function playSample(midiNum, when=0, velocity=0.8){
+  const ctx=getCtx();
+  const hit=findClosestSample(midiNum);
+  if(!hit)return;
+  const buf=audioBuffers[hit.file];
+  const src=ctx.createBufferSource();
+  src.buffer=buf;
+  // Pitch shift by resampling (playbackRate = 2^(semitones/12))
+  src.playbackRate.value=Math.pow(2,hit.semitones/12);
+
+  // Gain
+  const g=ctx.createGain();
+  g.gain.value=velocity*0.9;
+  src.connect(g);
+  g.connect(ctx.destination);
+  src.start(when);
+}
+
+function playChordAudio(notes){
+  const ctx=getCtx();
+  const now=ctx.currentTime;
+  if(!samplesLoaded){
+    // Show loading state on all play buttons
+    document.querySelectorAll('.playbtn').forEach(b=>{
+      b.innerHTML='&#8987; Loading…';b.disabled=true;
+    });
+    loadSamples().then(()=>{
+      document.querySelectorAll('.playbtn').forEach(b=>{
+        b.innerHTML='&#9654;&nbsp; Play chord';b.disabled=false;
+      });
+      playChordAudio(notes);
+    });
+    return;
+  }
+  notes.forEach((note,i)=>{
+    const midi=noteToMidi(note);
+    playSample(midi, now+i*0.05, 0.8);
+  });
+}
+
+function playSingleNote(note){
+  const ctx=getCtx();
+  if(!samplesLoaded){
+    loadSamples().then(()=>playSingleNote(note));
+    return;
+  }
+  playSample(noteToMidi(note), ctx.currentTime, 0.75);
+}
+
+// ── Keyboard builder ──────────────────────────────────────────────────────────
+function buildKeyboard(litNotes=[], interactive=false, selectedNotes=[]){
+  // Find the window of octaves to show: span from lowest to highest lit note, min 2 octaves
+  let minOct=3, maxOct=5;
+  if(litNotes.length>0){
+    const octs=litNotes.map(n=>parseInt(n.match(/\d+/)?.[0]||4));
+    minOct=Math.min(...octs);
+    maxOct=Math.max(...octs);
+    // ensure at least 2 octaves shown
+    if(maxOct-minOct<1) maxOct=minOct+1;
+  }
+
+  // Build the subset of notes to display
+  const displayNotes=ALLNOTES.filter(n=>{
+    const oct=parseInt(n.match(/\d+/)?.[0]||4);
+    return oct>=minOct && oct<=maxOct;
+  });
+  const displayWhite=displayNotes.filter(n=>!n.includes("#"));
+
+  const wh=displayWhite.map(note=>{
+    const bare=note.replace(/\d+/,"");
+    const l=litNotes.includes(note);
+    const sel=selectedNotes.includes(bare)||selectedNotes.includes(note);
+    const cls=`wk${l?' lit':''}${sel?' selected':''}${interactive?' interactive':''}`;
+    const lbl=l||sel?nd(bare):(note.startsWith("C")?note:"");
+    const oc=interactive?`onclick="idToggleNote('${bare}')"` :"";
+    return`<div class="${cls}" ${oc}><span class="lbl">${lbl}</span></div>`;
+  }).join("");
+
+  // Black key width = ~60% of one white key width, expressed as % of total piano width
+  const bkWidth = (0.6 / displayWhite.length * 100).toFixed(2);
+
+  const bk=displayNotes.filter(n=>n.includes("#")).map(note=>{
+    const base=note.replace(/\d+/,"");
+    const oct=parseInt(note.match(/\d+/)?.[0]||4);
+    const oo=(oct-minOct)*7, pos=BKP[base];
+    if(pos===undefined)return"";
+    const pct=((oo+pos+1)/displayWhite.length)*100;
+    const l=litNotes.includes(note);
+    const sel=selectedNotes.includes(base)||selectedNotes.includes(note);
+    const cls=`bk${l?' lit':''}${sel?' selected':''}${interactive?' interactive':''}`;
+    const oc=interactive?`onclick="idToggleNote('${base}')"` :"";
+    return`<div class="${cls}" style="left:${pct}%;width:${bkWidth}%" ${oc}></div>`;
+  }).join("");
+
+  return`<div class="piano"><div class="wkeys">${wh}</div><div class="bklayer">${bk}</div></div>`;
+}
+
+// ── Page switcher ─────────────────────────────────────────────────────────────
+function switchPage(page){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('on',t.textContent.toLowerCase()===page));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+page));
+  document.getElementById('sidebar').style.display=page==='learn'?'':'none';
+  if(page==='identify') renderIdPiano();
+}
+
+// ── Learn page ────────────────────────────────────────────────────────────────
+let aCat="Major",aKey=null,q="";
+const tb=document.getElementById("tabbar");
+CATS.forEach(c=>{
+  const b=document.createElement("button");
+  b.className="tab"+(c===aCat?" on":"");
+  b.textContent=c; b.title=c;
+  b.onclick=()=>{
+    aCat=c; q="";
+    document.getElementById("srch").value="";
+    document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.title===c));
+    renderList();
+  };
+  tb.appendChild(b);
+});
+
+function renderList(){
+  const cl=document.getElementById("clist");
+  cl.innerHTML="";
+  const sq=q.toLowerCase();
+  if(sq){
+    cl.className="clist sflat";
+    const hits=[];
+    ROOTS.forEach(r=>Object.entries(DB[r]).forEach(([tk,ch])=>{
+      if(ch.dn.toLowerCase().includes(sq)||ch.full.toLowerCase().includes(sq))hits.push({r,tk,ch});
+    }));
+    if(!hits.length){cl.innerHTML='<div style="padding:18px 12px;font-size:13px;color:#8c8470">No results found</div>';return;}
+    hits.forEach(({r,tk,ch})=>cl.appendChild(mkP(r,tk,ch)));
+    return;
+  }
+  cl.className="clist";
+  ROOTS.forEach(root=>{
+    const chords=Object.entries(DB[root]).filter(([tk,ch])=>ch.cat===aCat);
+    if(!chords.length)return;
+    const sec=document.createElement("div");
+    sec.className="rsec open";
+    const h=document.createElement("div");
+    h.className="rhdr";
+    h.innerHTML=`<span class="rn">${RD[root]}</span><span style="display:flex;align-items:center;gap:6px"><span class="rm">${chords.length}</span><span class="rc">&#9658;</span></span>`;
+    h.onclick=()=>sec.classList.toggle("open");
+    sec.appendChild(h);
+    const rc=document.createElement("div");
+    rc.className="rch";
+    chords.forEach(([tk,c])=>rc.appendChild(mkP(root,tk,c)));
+    sec.appendChild(rc);
+    cl.appendChild(sec);
+  });
+}
+
+function mkP(root,tk,ch){
+  const p=document.createElement("div");
+  p.className="cp"+(aKey===root+"_"+tk?" on":"");
+  p.textContent=ch.dn; p.dataset.k=root+"_"+tk;
+  p.onclick=()=>{
+    aKey=root+"_"+tk;
+    document.querySelectorAll(".cp").forEach(x=>x.classList.toggle("on",x.dataset.k===aKey));
+    showChord(root,tk);
+  };
+  return p;
+}
+
+function showChord(root,tk){
+  const ch=DB[root][tk];
+  document.getElementById("welcome").style.display="none";
+  const cv=document.getElementById("chord-view");
+  cv.style.display="flex";
+
+  const fnames=["Thumb","Index","Middle","Ring","Pinky"];
+  const asgn=ch.notes.slice(0,5).map((n,i)=>({num:i+1,fname:fnames[i],note:n}));
+  const um=asgn.reduce((a,f)=>{a[f.num]=f;return a},{});
+
+  const fcs=[1,2,3,4,5].map(n=>{
+    const f=um[n];
+    return`<div class="fi"><div class="fc${f?" on":""}">${n}</div><div class="fn${f?" on":""}">${f?nd(f.note.replace(/\d/,"")):"&#8212;"}</div></div>`;
+  }).join("");
+  const fdet=asgn.map(f=>`<div class="fdr"><b>${f.fname} (${f.num})</b> &rarr; ${nd(f.note.replace(/\d/,""))}</div>`).join("");
+  const pills=ch.notes.map((n,i)=>{
+    const bare=n.replace(/\d/,"");
+    const cls=i===0?"root":bare.includes("#")?"blk":"";
+    return`<span class="np ${cls}">${nd(bare)}</span>`;
+  }).join("");
+  const dots=[1,2,3,4].map(i=>`<div class="dd${i<=ch.diff?" on":""}"></div>`).join("");
+  const dlbl=["","Beginner","Easy","Intermediate","Advanced"][ch.diff]||"Advanced";
+  const suf=SUF[tk]!==undefined?SUF[tk]:tk;
+  const enharm=ENH[root]?`<div class="enharm">Also called <b>${ENH[root]+suf}</b></div>`:"";
+  const tips=ch.tips.map(t=>`<li><span class="td">&#10003;</span><span>${t}</span></li>`).join("");
+  const fsteps=ch.notes.map((n,i)=>`<span class="fs">${nd(n.replace(/\d/,""))}</span>${i<ch.notes.length-1?'<span class="fsep">+</span>':""}`).join("");
+
+  cv.innerHTML=`
+    <div class="hero anim">
+      <div class="hero-l">
+        <div class="cname">${ch.dn}</div>
+        <div class="cfull">${ch.full}</div>
+        <div class="cdesc">${ch.desc}</div>
+        ${enharm}
+        <div class="npills">${pills}</div>
+        <button class="playbtn" id="playBtn">&#9654;&nbsp; Play chord</button>
+      </div>
+      <div class="mrow">
+        <div class="mbox">
+          <div class="mlbl">Difficulty</div>
+          <div class="ddots">${dots}</div>
+          <div style="font-size:12px;color:var(--acc);font-weight:600;margin-top:6px">${dlbl}</div>
+        </div>
+        <div class="mbox">
+          <div class="mlbl">Notes</div>
+          <div class="mval" style="color:var(--acc)">${ch.notes.length}</div>
+        </div>
+        <div class="mbox">
+          <div class="mlbl">Type</div>
+          <div style="font-size:12px;font-weight:500;color:var(--sub);margin-top:4px;line-height:1.4">${ch.cat}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card anim">
+      <div class="ctitle">Keys to press</div>
+      ${buildKeyboard(ch.notes)}
+    </div>
+
+    <div class="c2">
+      <div class="card anim">
+        <div class="ctitle">Right hand fingering</div>
+        <div class="frow">${fcs}</div>
+        <div class="fdet">${fdet}</div>
+      </div>
+      <div class="card anim">
+        <div class="ctitle">How to play</div>
+        <ul class="tips">${tips}</ul>
+      </div>
+    </div>
+
+    <div class="card anim">
+      <div class="ctitle">Interval formula</div>
+      <div class="fsteps">${fsteps}</div>
+      <div class="flbl">Semitones from root: ${ch.ivs.join(" – ")}</div>
+    </div>`;
+
+  document.getElementById("playBtn").addEventListener("click",()=>playChordAudio(ch.notes));
+}
+
+// ── Identify page ─────────────────────────────────────────────────────────────
+let selectedNotes=new Set();
+
+function renderIdPiano(){
+  // For identifier, always show C3–C5 fixed range
+  const idNotes = ALLNOTES.filter(n=>{ const o=parseInt(n.match(/\d+/)?.[0]||4); return o>=3&&o<=5; });
+  const idWhite = idNotes.filter(n=>!n.includes("#"));
+  const sel=[...selectedNotes];
+
+  const wh=idWhite.map(note=>{
+    const bare=note.replace(/\d+/,"");
+    const s=sel.includes(bare);
+    const lbl=s?nd(bare):(note.startsWith("C")?note:"");
+    return`<div class="wk interactive${s?' selected':''}" onclick="idToggleNote('${bare}')"><span class="lbl">${lbl}</span></div>`;
+  }).join("");
+
+  const bkWidth2=(0.6/idWhite.length*100).toFixed(2);
+  const bk=idNotes.filter(n=>n.includes("#")).map(note=>{
+    const base=note.replace(/\d+/,"");
+    const oct=parseInt(note.match(/\d+/)?.[0]||4);
+    const oo=(oct-3)*7, pos=BKP[base];
+    if(pos===undefined)return"";
+    const pct=((oo+pos+1)/idWhite.length)*100;
+    const s=sel.includes(base);
+    return`<div class="bk interactive${s?' selected':''}" style="left:${pct}%;width:${bkWidth2}%" onclick="idToggleNote('${base}')"></div>`;
+  }).join("");
+
+  document.getElementById("id-piano").innerHTML=`<div class="piano"><div class="wkeys">${wh}</div><div class="bklayer">${bk}</div></div>`;
+}
+function idToggleNote(bare){
+  if(selectedNotes.has(bare)){ selectedNotes.delete(bare); }
+  else { selectedNotes.add(bare); playSingleNote(bare+"4"); }
+  renderIdPiano();
+  updateSelectedDisplay();
+  identifyChord();
+}
+function updateSelectedDisplay(){
+  const el=document.getElementById("selNotes");
+  if(selectedNotes.size===0){
+    el.innerHTML='<span class="sel-hint">Click piano keys below…</span>';
+    return;
+  }
+  const sorted=[...selectedNotes].sort((a,b)=>CHROM.indexOf(a)-CHROM.indexOf(b));
+  el.innerHTML=sorted.map(n=>`<span class="sel-note">${nd(n)}</span>`).join("");
+}
+function clearIdentifier(){
+  selectedNotes.clear();
+  renderIdPiano();
+  updateSelectedDisplay();
+  document.getElementById("idResult").innerHTML='<div class="result-empty">Play 2 or more notes to identify a chord</div>';
+}
+function identifyChord(){
+  const res=document.getElementById("idResult");
+  if(selectedNotes.size<2){
+    res.innerHTML='<div class="result-empty">Play 2 or more notes to identify a chord</div>';
+    return;
+  }
+  const selIndices=[...selectedNotes].map(n=>CHROM.indexOf(n)).filter(i=>i>=0);
+  const selSet=new Set(selIndices);
+  const matches=[];
+  ROOTS.forEach((root,ri)=>{
+    Object.entries(T).forEach(([tk,t])=>{
+      const chordPCs=new Set(t.i.map(iv=>(ri+iv)%12));
+      const exactMatch=[...selSet].every(pc=>chordPCs.has(pc))&&[...chordPCs].every(pc=>selSet.has(pc));
+      if(exactMatch){
+        const suf=SUF[tk]!==undefined?SUF[tk]:tk;
+        matches.push({root,tk,dn:nd(root)+suf,full:nd(root)+" "+t.n,notes:DB[root][tk].notes});
+      }
+    });
+  });
+  const partials=[];
+  if(matches.length===0){
+    ROOTS.forEach((root,ri)=>{
+      Object.entries(T).forEach(([tk,t])=>{
+        const chordPCs=new Set(t.i.map(iv=>(ri+iv)%12));
+        if([...selSet].every(pc=>chordPCs.has(pc))){
+          const suf=SUF[tk]!==undefined?SUF[tk]:tk;
+          partials.push({root,tk,dn:nd(root)+suf,full:nd(root)+" "+t.n,notes:DB[root][tk].notes});
+        }
+      });
+    });
+  }
+  const sortedNotes=[...selectedNotes].sort((a,b)=>CHROM.indexOf(a)-CHROM.indexOf(b));
+  const notesPills=sortedNotes.map(n=>`<span class="np root">${nd(n)}</span>`).join("");
+  if(matches.length>0){
+    const primary=matches[0];
+    const alts=matches.slice(1);
+    window._idPrimaryNotes=primary.notes;
+    const altHtml=alts.length>0?`<div class="result-alts">
+      <div class="result-alts-label">Also known as</div>
+      ${alts.map((a,i)=>{window['_idAlt'+i]=a.notes; return`<span class="alt-pill" onclick="playChordAudio(window._idAlt${i})">${a.dn}</span>`;}).join("")}
+    </div>`:"";
+    res.innerHTML=`<div class="result-found">
+      <div class="result-name">${primary.dn}</div>
+      <div class="result-full">${primary.full}</div>
+      <div class="result-pills">${notesPills}</div>
+      <button class="playbtn" style="margin-top:16px" onclick="playChordAudio(window._idPrimaryNotes)">&#9654;&nbsp; Play chord</button>
+      ${altHtml}
+    </div>`;
+  } else if(partials.length>0){
+    partials.slice(0,8).forEach((a,i)=>{ window['_idPartial'+i]=a.notes; });
+    res.innerHTML=`<div class="result-found">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;font-weight:400">No exact match — these chords contain your notes:</div>
+      <div class="result-pills" style="margin-bottom:0">${notesPills}</div>
+      <div style="margin-top:14px">${partials.slice(0,8).map((a,i)=>`<span class="alt-pill" onclick="playChordAudio(window._idPartial${i})">${a.dn}</span>`).join("")}</div>
+    </div>`;
+  } else {
+    res.innerHTML='<div class="result-empty">No chord found for this combination.<br>Try a different set of notes.</div>';
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById("srch").addEventListener("input",e=>{q=e.target.value.trim();renderList();});
+renderList();
+// Start loading samples immediately in background
+loadSamples();
+</script>
+</body>
+</html>
